@@ -15,35 +15,31 @@ jobs:
       - name: 1. Checkout Repository Code
         uses: actions/checkout@v4
 
-      - name: 2. Set up JDK 17 (Java Development Kit)
+      - name: 2. Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 3. Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: 4. Setup Gradle 8.7
+      - name: 3. Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.7'
+
+      - name: 4. Make gradlew executable
+        run: |
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+          fi
 
       - name: 5. Build Debug APK
-        run: gradle assembleDebug --stacktrace --no-daemon
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew assembleDebug --stacktrace --no-daemon
+          else
+            gradle assembleDebug --stacktrace --no-daemon
+          fi
 
-      - name: 6. Upload Ready-to-Install APK to Artifacts
+      - name: 6. Upload Ready-to-Install APK
         uses: actions/upload-artifact@v4
         with:
           name: StudyFlow-Global-Android-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
-
-      - name: 7. Create GitHub Release APK (Optional on Push to main)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v2.5.${{ github.run_number }}
-          name: "StudyFlow Android APK Build #${{ github.run_number }}"
-          files: app/build/outputs/apk/debug/app-debug.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: app/build/outputs/apk/debug/*.apk

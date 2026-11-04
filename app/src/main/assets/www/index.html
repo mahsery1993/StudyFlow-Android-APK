@@ -45,6 +45,25 @@
     .timer-pulse {
       animation: pulse-ring 2.5s infinite ease-in-out;
     }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    body.modal-open {
+      overflow: hidden !important;
+      touch-action: none;
+    }
+    body.modal-open #app-main-wrapper,
+    body.modal-open header,
+    body.modal-open #mobile-bottom-nav {
+      pointer-events: none !important;
+      user-select: none !important;
+      filter: blur(1px);
+    }
   </style>
   <script>
     tailwind.config = {
@@ -79,7 +98,7 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="font-bold text-lg sm:text-xl tracking-tight text-slate-900 dark:text-white" id="app-title">StudyFlow</h1>
-            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800" id="badge-android">Android v2.4</span>
+            <span class="hidden" id="badge-android"></span>
           </div>
           <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block" id="app-subtitle">المنصة العالمية لتنظيم الدراسة والوقت</p>
         </div>
@@ -128,7 +147,7 @@
   </header>
 
   <!-- Main Layout Container -->
-  <div class="max-w-7xl mx-auto px-3 sm:px-6 py-5 pb-24 lg:pb-8 flex flex-col lg:flex-row gap-6">
+  <div id="app-main-wrapper" class="max-w-7xl mx-auto px-3 sm:px-6 py-5 pb-28 flex flex-col lg:flex-row gap-6">
 
     <!-- Desktop / Tablet Side Navigation Rail (Material 3 Navigation Rail) -->
     <aside class="hidden lg:flex flex-col w-64 shrink-0 bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm h-fit sticky top-20">
@@ -470,11 +489,11 @@
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4 bg-violet-50/60 dark:bg-violet-950/20 p-3.5 rounded-2xl border border-violet-200/60 dark:border-violet-900/50">
                 <div>
                   <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1" id="lbl-plan-subject">المادة المستهدفة</label>
-                  <input id="plan-subject-input" type="text" value="الذكاء الاصطناعي وتعلم الآلة" class="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium" />
+                  <input id="plan-subject-input" type="text" value="" placeholder="اكتب اسم المادة هنا..." class="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium" />
                 </div>
                 <div>
                   <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1" id="lbl-plan-days">الأيام قبل الامتحان</label>
-                  <input id="plan-days-input" type="number" min="3" max="30" value="5" class="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium" />
+                  <input id="plan-days-input" type="number" min="1" max="60" value="" placeholder="مثال: 5" class="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium" />
                 </div>
                 <div>
                   <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1" id="lbl-plan-intensity">ساعات يومياً</label>
@@ -522,7 +541,7 @@
           <div class="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
             <div>
               <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
-                <input id="note-editor-title" type="text" value="ملخص خوارزميات البحث المتقدم" class="text-base sm:text-lg font-bold bg-transparent text-slate-900 dark:text-white focus:outline-none flex-1" />
+                <input id="note-editor-title" type="text" value="" placeholder="اكتب عنوان الملاحظة هنا..." class="text-base sm:text-lg font-bold bg-transparent text-slate-900 dark:text-white focus:outline-none flex-1" />
                 <select id="note-editor-tag" class="px-3 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs font-semibold">
                   <option value="خوارزميات / Algorithms">خوارزميات / Algorithms</option>
                   <option value="ذكاء اصطناعي / AI">ذكاء اصطناعي / AI</option>
@@ -723,10 +742,12 @@ fun StudyFlowThemeWrapper(
     </main>
   </div>
 
-  <!-- Mobile Bottom Navigation Bar (Android Material 3 Style) -->
-  <nav id="mobile-bottom-nav" class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-2 py-1.5 flex items-center justify-around">
-    <!-- Populated by JS -->
-  </nav>
+  <!-- Always-Visible Phone-Sized Swipeable Bottom Navigation Bar -->
+  <div class="fixed bottom-3 inset-x-0 z-40 flex justify-center px-3 pointer-events-none">
+    <nav id="mobile-bottom-nav" class="pointer-events-auto w-full max-w-[420px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-2 border-slate-200/90 dark:border-slate-700/90 rounded-3xl shadow-2xl shadow-indigo-950/25 px-2.5 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth">
+      <!-- Populated by JS -->
+    </nav>
+  </div>
 
   <!-- MODAL 1: Add Lecture / Class (Multi-Day + Preset Time Slots & Hour Picker) -->
   <div id="modal-add-class" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
@@ -1043,87 +1064,29 @@ fun StudyFlowThemeWrapper(
       calendarMonthOffset: 0,
       gcalSynced: false,
       taskFilter: 'all',
-      studyHoursTotal: 18.5,
+      studyHoursTotal: 0,
       weeklyTargetHours: 25,
-      pomodoroCount: 22,
+      pomodoroCount: 0,
       pomoMode: 'focus',
       pomoSecondsLeft: 25 * 60,
       pomoRunning: false,
       pomoInterval: null,
-      activeNoteId: 1,
-      dailyHoursData: [2.5, 3.5, 2.0, 4.0, 3.0, 1.5, 2.0],
+      activeNoteId: null,
+      dailyHoursData: [0, 0, 0, 0, 0, 0, 0],
       classes: {
-        sun: [
-          { id: 1, subjectAr: 'هندسة البرمجيات المتقدمة', subjectEn: 'Advanced Software Engineering', time: '09:00 - 10:30', roomAr: 'قاعة الخوارزمي 204', roomEn: 'Al-Khwarizmi Hall 204', color: 'indigo' },
-          { id: 2, subjectAr: 'الذكاء الاصطناعي وتعلم الآلة', subjectEn: 'AI & Machine Learning', time: '11:00 - 12:30', roomAr: 'مختبر الحوسبة 3', roomEn: 'Computing Lab 3', color: 'violet' },
-          { id: 3, subjectAr: 'حساب التفاضل والتكامل المتقدم', subjectEn: 'Advanced Calculus', time: '13:30 - 15:00', roomAr: 'مدرج العلوم 101', roomEn: 'Science Auditorium 101', color: 'emerald' }
-        ],
-        mon: [
-          { id: 4, subjectAr: 'قواعد البيانات الموزعة', subjectEn: 'Distributed Databases', time: '10:00 - 11:30', roomAr: 'قاعة 108', roomEn: 'Room 108', color: 'amber' },
-          { id: 5, subjectAr: 'أمن الشبكات والمعلومات', subjectEn: 'Network & Info Security', time: '12:00 - 13:30', roomAr: 'مختبر الأمن السيبراني', roomEn: 'Cybersecurity Lab', color: 'rose' }
-        ],
-        tue: [
-          { id: 6, subjectAr: 'هندسة البرمجيات المتقدمة', subjectEn: 'Advanced Software Engineering', time: '09:00 - 10:30', roomAr: 'قاعة الخوارزمي 204', roomEn: 'Al-Khwarizmi Hall 204', color: 'indigo' },
-          { id: 7, subjectAr: 'الذكاء الاصطناعي وتعلم الآلة', subjectEn: 'AI & Machine Learning', time: '11:00 - 12:30', roomAr: 'مختبر الحوسبة 3', roomEn: 'Computing Lab 3', color: 'violet' }
-        ],
-        wed: [
-          { id: 8, subjectAr: 'قواعد البيانات الموزعة', subjectEn: 'Distributed Databases', time: '10:00 - 11:30', roomAr: 'قاعة 108', roomEn: 'Room 108', color: 'amber' },
-          { id: 9, subjectAr: 'مشروع التخرج التطبيقي', subjectEn: 'Capstone Design Project', time: '14:00 - 16:00', roomAr: 'حاضنة الابتكار', roomEn: 'Innovation Hub', color: 'emerald' }
-        ],
-        thu: [
-          { id: 10, subjectAr: 'مراجعة وحل مسائل خوارزميات', subjectEn: 'Algorithms Problem Solving', time: '09:30 - 11:00', roomAr: 'قاعة الندوات 2', roomEn: 'Seminar Room 2', color: 'indigo' }
-        ],
-        sat: [
-          { id: 11, subjectAr: 'ورشة مهارات البحث العلمي والبرمجة', subjectEn: 'Research & Coding Lab', time: '10:00 - 11:30', roomAr: 'مختبر الحوسبة 1', roomEn: 'Computing Lab 1', color: 'emerald' }
-        ]
+        sun: [],
+        mon: [],
+        tue: [],
+        wed: [],
+        thu: [],
+        sat: []
       },
-      tasks: [
-        { id: 101, titleAr: 'تسليم مشروع تصميم واجهات تطبيق الأندرويد', titleEn: 'Submit Android UI Architecture Assignment', courseAr: 'هندسة البرمجيات', courseEn: 'Software Eng', dueAr: 'غداً • 11:59 م', dueEn: 'Tomorrow • 11:59 PM', priority: 'high', done: false },
-        { id: 102, titleAr: 'حل ورقة عمل الشبكات العصبية العميقة', titleEn: 'Complete Deep Neural Networks Worksheet', courseAr: 'الذكاء الاصطناعي', courseEn: 'AI & ML', dueAr: 'خلال يومين', dueEn: 'In 2 days', priority: 'high', done: false },
-        { id: 103, titleAr: 'مراجعة الفصل الرابع: التكامل المتعدد', titleEn: 'Review Chapter 4: Multiple Integrals', courseAr: 'التفاضل والتكامل', courseEn: 'Calculus', dueAr: 'الخميس', dueEn: 'Thursday', priority: 'medium', done: true },
-        { id: 104, titleAr: 'تحضير عرض قاعدة البيانات SQL/NoSQL', titleEn: 'Prepare SQL/NoSQL Database Slides', courseAr: 'قواعد البيانات', courseEn: 'Databases', dueAr: 'الأحد القادم', dueEn: 'Next Sunday', priority: 'medium', done: true },
-        { id: 105, titleAr: 'قراءة بحث خوارزميات الجدولة الذكية', titleEn: 'Read Smart Scheduling Algorithms Paper', courseAr: 'الذكاء الاصطناعي', courseEn: 'AI & ML', dueAr: 'الأسبوع القادم', dueEn: 'Next Week', priority: 'low', done: false },
-        { id: 106, titleAr: 'كتابة اختبارات الوحدة Unit Tests للمشروع', titleEn: 'Write Unit Tests for Repository Layer', courseAr: 'هندسة البرمجيات', courseEn: 'Software Eng', dueAr: 'مكتمل', dueEn: 'Completed', priority: 'low', done: true },
-        { id: 107, titleAr: 'تلخيص قوانين الاحتمالات والإحصاء', titleEn: 'Summarize Probability & Statistics Formulas', courseAr: 'التفاضل والتكامل', courseEn: 'Calculus', dueAr: 'مكتمل', dueEn: 'Completed', priority: 'medium', done: true }
-      ],
-      weeklyGoals: [
-        { id: 201, titleAr: 'إتمام 25 ساعة مذاكرة مركزة', titleEn: 'Complete 25 Hours of Focused Study', current: 18.5, target: 25, unitAr: 'ساعة', unitEn: 'hrs' },
-        { id: 202, titleAr: 'حل 20 مسألة خوارزميات وهياكل بيانات', titleEn: 'Solve 20 Algorithms & DS Problems', current: 15, target: 20, unitAr: 'مسألة', unitEn: 'problems' },
-        { id: 203, titleAr: 'تلخيص 4 محاضرات في دفتر الملاحظات', titleEn: 'Summarize 4 Lectures in Smart Notes', current: 3, target: 4, unitAr: 'محاضرات', unitEn: 'lectures' }
-      ],
-      studySessions: [
-        { id: 301, subject: 'الذكاء الاصطناعي / AI', duration: '1.5h', dateAr: 'اليوم • 10:30 ص', dateEn: 'Today • 10:30 AM', mode: 'Pomodoro x3' },
-        { id: 302, subject: 'هندسة البرمجيات / Software Eng', duration: '2.0h', dateAr: 'أمس • 07:00 م', dateEn: 'Yesterday • 07:00 PM', mode: 'Pomodoro x4' },
-        { id: 303, subject: 'حساب التفاضل والتكامل / Calculus', duration: '1.0h', dateAr: 'أمس • 04:15 م', dateEn: 'Yesterday • 04:15 PM', mode: 'Manual Log' }
-      ],
-      exams: [
-        { id: 401, subjectAr: 'الذكاء الاصطناعي وتعلم الآلة (Midterm)', subjectEn: 'AI & Machine Learning (Midterm)', daysLeft: 5, dateStr: '2026-11-09', roomAr: 'القاعة الكبرى A', roomEn: 'Main Hall A', readiness: 78 },
-        { id: 402, subjectAr: 'هندسة البرمجيات المتقدمة', subjectEn: 'Advanced Software Engineering', daysLeft: 12, dateStr: '2026-11-16', roomAr: 'مختبر الهندسة 2', roomEn: 'Engineering Lab 2', readiness: 64 },
-        { id: 403, subjectAr: 'قواعد البيانات الموزعة', subjectEn: 'Distributed Databases', daysLeft: 19, dateStr: '2026-11-23', roomAr: 'مدرج الخوارزمي', roomEn: 'Khwarizmi Auditorium', readiness: 45 }
-      ],
-      smartPlanSteps: [
-        { day: 1, titleAr: 'اليوم 1: مراجعة المفاهيم الأساسية والشبكات العصبية', titleEn: 'Day 1: Core Concepts & Neural Networks Review', hours: '3 ساعات', done: true },
-        { day: 2, titleAr: 'اليوم 2: تطبيق عملي على خوارزميات التصنيف والانحدار', titleEn: 'Day 2: Classification & Regression Hands-on Practice', hours: '3 ساعات', done: false },
-        { day: 3, titleAr: 'اليوم 3: حل أسئلة سنوات سابقة + جلسة Pomodoro مكثفة', titleEn: 'Day 3: Past Exam Papers + Intensive Pomodoro', hours: '3 ساعات', done: false },
-        { day: 4, titleAr: 'اليوم 4: التركيز على نقاط الضعف وتلخيص القوانين', titleEn: 'Day 4: Weak Areas & Formula Cheat-Sheet', hours: '3 ساعات', done: false },
-        { day: 5, titleAr: 'اليوم 5: مراجعة شاملة سريعة واختبار تجريبي كامل', titleEn: 'Day 5: Final Rapid Review & Full Mock Exam', hours: '2 ساعتان', done: false }
-      ],
-      notes: [
-        {
-          id: 1,
-          title: 'ملخص خوارزميات البحث المتقدم (A* & Heuristic)',
-          tag: 'خوارزميات / Algorithms',
-          updated: 'اليوم • 11:20 ص',
-          body: '• خوارزمية A* تجمع بين تكلفة المسار الفعلي g(n) والتقدير الإرشادي h(n).\n⭐ نقطة هامة للامتحان: حتى تكون A* مثالية (Optimal)، يجب أن تكون دالة التقدير h(n) مقبولة (Admissible) ولا تبالغ في تقدير التكلفة.\n☑️ مراجعة أمثلة الرسم البياني في الفصل الثالث.'
-        },
-        {
-          id: 2,
-          title: 'معمارية تطبيقات الأندرويد MVVM & Jetpack Compose',
-          tag: 'ذكاء اصطناعي / AI',
-          updated: 'أمس',
-          body: '📌 خلاصة سريعة:\n• ViewModel يحافظ على حالة الشاشة (StateFlow) عند تدوير الجهاز.\n• Room Database يوفر استعلامات SQL سريعة مع دعم Coroutines Flow.\n• WorkManager مثالي لجدولة التنبيهات والمزامنة الدورية مع Google Calendar.'
-        }
-      ],
+      tasks: [],
+      weeklyGoals: [],
+      studySessions: [],
+      exams: [],
+      smartPlanSteps: [],
+      notes: [],
       notifications: [
         { id: 1, titleAr: 'تذكير محاضرة: الذكاء الاصطناعي بعد 30 دقيقة', titleEn: 'Lecture Reminder: AI & ML starts in 30 mins', timeAr: 'منذ 5 دقائق', timeEn: '5m ago', type: 'lecture' },
         { id: 2, titleAr: 'موعد تسليم واجب هندسة البرمجيات غداً', titleEn: 'Software Engineering Assignment due tomorrow', timeAr: 'منذ ساعة', timeEn: '1h ago', type: 'task' },
@@ -1178,16 +1141,18 @@ fun StudyFlowThemeWrapper(
         `;
       }).join('');
 
-      // Mobile bottom bar shows top 6 core tabs
-      mobileNav.innerHTML = navItems.slice(0, 6).map(item => {
+      // Always-visible phone-sized swipeable bottom bar
+      mobileNav.innerHTML = navItems.map(item => {
         const label = dict.nav[item.key || item.id];
         const isActive = state.activeView === item.id;
         return `
-          <button data-view="${item.id}" class="nav-item-btn flex flex-col items-center justify-center py-1 px-2 rounded-xl transition ${
-            isActive ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-500 dark:text-slate-400'
+          <button data-view="${item.id}" class="nav-item-btn snap-center shrink-0 min-w-[82px] flex flex-col items-center justify-center py-2 px-3 rounded-2xl transition-all ${
+            isActive
+              ? 'bg-indigo-600 text-white font-extrabold shadow-md shadow-indigo-500/30 scale-105'
+              : 'bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-200 dark:hover:bg-slate-700'
           }">
-            <span class="text-base">${item.icon}</span>
-            <span class="text-[10px] mt-0.5 truncate max-w-[60px]">${label}</span>
+            <span class="text-lg leading-none">${item.icon}</span>
+            <span class="text-[11px] mt-1 whitespace-nowrap">${label}</span>
           </button>
         `;
       }).join('');
@@ -1359,23 +1324,36 @@ fun StudyFlowThemeWrapper(
         en: { high: 'High', medium: 'Medium', low: 'Low' }
       };
 
-      container.innerHTML = filtered.map(task => {
-        const title = state.lang === 'ar' ? task.titleAr : task.titleEn;
-        const course = state.lang === 'ar' ? task.courseAr : task.courseEn;
-        const due = state.lang === 'ar' ? task.dueAr : task.dueEn;
-        return `
-          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-3">
-            <label class="flex items-center gap-3 cursor-pointer flex-1">
-              <input type="checkbox" data-task-id="${task.id}" ${task.done ? 'checked' : ''} class="task-check w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" />
-              <div>
-                <div class="text-xs sm:text-sm font-bold ${task.done ? 'line-through text-slate-400' : 'text-slate-900 dark:text-white'}">${title}</div>
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${course} • ⏰ ${due}</div>
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">${
+          state.lang === 'ar'
+            ? 'لا توجد واجبات مضافة حالياً. قم بتعبئة الحقول أعلاه لإضافة واجبك الأول!'
+            : 'No homework or tasks added yet. Fill in the fields above to add your first task!'
+        }</div>`;
+      } else {
+        container.innerHTML = filtered.map(task => {
+          const title = state.lang === 'ar' ? task.titleAr : task.titleEn;
+          const course = state.lang === 'ar' ? task.courseAr : task.courseEn;
+          const due = state.lang === 'ar' ? task.dueAr : task.dueEn;
+          return `
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-3">
+              <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+                <input type="checkbox" data-task-id="${task.id}" ${task.done ? 'checked' : ''} class="task-check w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 shrink-0" />
+                <div class="truncate">
+                  <div class="text-xs sm:text-sm font-bold truncate ${task.done ? 'line-through text-slate-400' : 'text-slate-900 dark:text-white'}">${title}</div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${course} • ⏰ ${due}</div>
+                </div>
+              </label>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${prioColors[task.priority]}">${prioLabels[state.lang][task.priority]}</span>
+                <button type="button" data-delete-task="${task.id}" class="delete-task-btn px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 text-xs font-bold transition" title="${state.lang === 'ar' ? 'حذف الواجب' : 'Delete task'}">
+                  🗑️ ${state.lang === 'ar' ? 'حذف' : 'Delete'}
+                </button>
               </div>
-            </label>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${prioColors[task.priority]}">${prioLabels[state.lang][task.priority]}</span>
-          </div>
-        `;
-      }).join('');
+            </div>
+          `;
+        }).join('');
+      }
 
       document.querySelectorAll('.task-check').forEach(chk => {
         chk.addEventListener('change', () => {
@@ -1389,9 +1367,24 @@ fun StudyFlowThemeWrapper(
         });
       });
 
+      document.querySelectorAll('.delete-task-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = parseInt(btn.getAttribute('data-delete-task'), 10);
+          state.tasks = state.tasks.filter(t => t.id !== id);
+          renderTasksAndGoals();
+          updateKPIs();
+          showToast('تم حذف الواجب بنجاح 🗑️', 'Assignment deleted 🗑️');
+        });
+      });
+
       // Render Weekly Goals
       const goalsEl = document.getElementById('weekly-goals-list');
-      goalsEl.innerHTML = state.weeklyGoals.map(g => {
+      if (state.weeklyGoals.length === 0) {
+        goalsEl.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">${
+          state.lang === 'ar' ? 'أضف أهدافك الأسبوعية من الحقل بالأسفل.' : 'Add your weekly goals below.'
+        }</div>`;
+      } else {
+        goalsEl.innerHTML = state.weeklyGoals.map(g => {
         const pct = Math.min(100, Math.round((g.current / g.target) * 100));
         const title = state.lang === 'ar' ? g.titleAr : g.titleEn;
         const unit = state.lang === 'ar' ? g.unitAr : g.unitEn;
@@ -1407,6 +1400,7 @@ fun StudyFlowThemeWrapper(
           </div>
         `;
       }).join('');
+      }
 
       document.querySelectorAll('.goal-card').forEach(card => {
         card.addEventListener('click', () => {
@@ -1450,6 +1444,12 @@ fun StudyFlowThemeWrapper(
 
     function renderStudySessionsLog() {
       const container = document.getElementById('study-sessions-log');
+      if (state.studySessions.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">${
+          state.lang === 'ar' ? 'لم يتم تسجيل جلسات دراسة بعد.' : 'No study sessions logged yet.'
+        }</div>`;
+        return;
+      }
       container.innerHTML = state.studySessions.map(s => {
         const dateStr = state.lang === 'ar' ? s.dateAr : s.dateEn;
         return `
@@ -1469,7 +1469,12 @@ fun StudyFlowThemeWrapper(
     // ==========================================
     function renderExamsAndPlans() {
       const examsList = document.getElementById('exams-list');
-      examsList.innerHTML = state.exams.map(ex => {
+      if (state.exams.length === 0) {
+        examsList.innerHTML = `<div class="p-5 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">${
+          state.lang === 'ar' ? 'لا توجد امتحانات مضافة. أضف مواعيد امتحاناتك من الحقول أعلاه.' : 'No exams added yet. Fill in the fields above to add exams.'
+        }</div>`;
+      } else {
+        examsList.innerHTML = state.exams.map(ex => {
         const subject = state.lang === 'ar' ? ex.subjectAr : ex.subjectEn;
         const room = state.lang === 'ar' ? ex.roomAr : ex.roomEn;
         const badgeColor = ex.daysLeft <= 7
@@ -1493,6 +1498,7 @@ fun StudyFlowThemeWrapper(
           </div>
         `;
       }).join('');
+      }
 
       const planOut = document.getElementById('smart-plan-output');
       planOut.innerHTML = state.smartPlanSteps.map((step, idx) => {
@@ -1561,7 +1567,11 @@ fun StudyFlowThemeWrapper(
 
     function loadActiveNoteIntoEditor() {
       const note = state.notes.find(n => n.id === state.activeNoteId) || state.notes[0];
-      if (!note) return;
+      if (!note) {
+        document.getElementById('note-editor-title').value = '';
+        document.getElementById('note-editor-body').value = '';
+        return;
+      }
       document.getElementById('note-editor-title').value = note.title;
       document.getElementById('note-editor-tag').value = note.tag;
       document.getElementById('note-editor-body').value = note.body;
@@ -1805,15 +1815,30 @@ fun StudyFlowThemeWrapper(
         renderCalendarWidget();
       });
 
+      // Helper to lock/unlock background scroll & interaction when any popup modal opens
+      const syncModalLock = () => {
+        const anyOpen = ['modal-add-class', 'modal-share', 'modal-notifications'].some(id => {
+          const el = document.getElementById(id);
+          return el && !el.classList.contains('hidden');
+        });
+        if (anyOpen) {
+          document.body.classList.add('modal-open');
+        } else {
+          document.body.classList.remove('modal-open');
+        }
+      };
+
       // Add Lecture Modal
       const classModal = document.getElementById('modal-add-class');
       const openClassModal = () => {
         classModal.classList.remove('hidden');
         classModal.classList.add('flex');
+        syncModalLock();
       };
       const closeClassModal = () => {
         classModal.classList.add('hidden');
         classModal.classList.remove('flex');
+        syncModalLock();
       };
       document.getElementById('btn-open-class-modal').addEventListener('click', openClassModal);
       document.getElementById('btn-quick-add-class').addEventListener('click', openClassModal);
@@ -1901,10 +1926,12 @@ fun StudyFlowThemeWrapper(
       document.getElementById('btn-share-open').addEventListener('click', () => {
         shareModal.classList.remove('hidden');
         shareModal.classList.add('flex');
+        syncModalLock();
       });
       document.getElementById('btn-close-share-modal').addEventListener('click', () => {
         shareModal.classList.add('hidden');
         shareModal.classList.remove('flex');
+        syncModalLock();
       });
       document.getElementById('btn-copy-share-link').addEventListener('click', () => {
         const link = document.getElementById('share-link-box').textContent.trim();
@@ -1922,11 +1949,53 @@ fun StudyFlowThemeWrapper(
       document.getElementById('btn-notif-open').addEventListener('click', () => {
         notifModal.classList.remove('hidden');
         notifModal.classList.add('flex');
+        syncModalLock();
       });
       document.getElementById('btn-close-notif-modal').addEventListener('click', () => {
         notifModal.classList.add('hidden');
         notifModal.classList.remove('flex');
+        syncModalLock();
       });
+
+      // Enable touch/mouse drag scrolling on the phone-sized bottom navigation bar + horizontal swipe gesture to switch sections
+      const bottomBar = document.getElementById('mobile-bottom-nav');
+      let isDown = false, startX = 0, scrollLeft = 0;
+      bottomBar.addEventListener('mousedown', e => {
+        isDown = true;
+        startX = e.pageX - bottomBar.offsetLeft;
+        scrollLeft = bottomBar.scrollLeft;
+      });
+      bottomBar.addEventListener('mouseleave', () => { isDown = false; });
+      bottomBar.addEventListener('mouseup', () => { isDown = false; });
+      bottomBar.addEventListener('mousemove', e => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - bottomBar.offsetLeft;
+        bottomBar.scrollLeft = scrollLeft - (x - startX) * 1.5;
+      });
+
+      // Swipe left/right on main view to move between sections
+      let touchStartX = 0, touchEndX = 0;
+      const mainWrapper = document.getElementById('app-main-wrapper');
+      mainWrapper.addEventListener('touchstart', e => {
+        if (document.body.classList.contains('modal-open')) return;
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+      mainWrapper.addEventListener('touchend', e => {
+        if (document.body.classList.contains('modal-open')) return;
+        touchEndX = e.changedTouches[0].screenX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 75) {
+          const idx = navItems.findIndex(i => i.id === state.activeView);
+          const dirFactor = state.lang === 'ar' ? -1 : 1;
+          const nextIdx = idx + (diff > 0 ? dirFactor : -dirFactor);
+          if (nextIdx >= 0 && nextIdx < navItems.length) {
+            switchView(navItems[nextIdx].id);
+            const activeBtn = bottomBar.querySelector(`[data-view="${navItems[nextIdx].id}"]`);
+            if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          }
+        }
+      }, { passive: true });
       document.getElementById('btn-clear-notifs').addEventListener('click', () => {
         state.notifications = [];
         renderNotifications();
@@ -2152,15 +2221,28 @@ fun StudyFlowThemeWrapper(
       });
 
       document.getElementById('btn-save-note').addEventListener('click', () => {
-        const note = state.notes.find(n => n.id === state.activeNoteId);
+        const titleVal = document.getElementById('note-editor-title').value.trim() || (state.lang === 'ar' ? 'ملاحظة جديدة' : 'New Note');
+        const tagVal = document.getElementById('note-editor-tag').value;
+        const bodyVal = document.getElementById('note-editor-body').value;
+        let note = state.notes.find(n => n.id === state.activeNoteId);
         if (note) {
-          note.title = document.getElementById('note-editor-title').value.trim() || 'بدون عنوان';
-          note.tag = document.getElementById('note-editor-tag').value;
-          note.body = document.getElementById('note-editor-body').value;
+          note.title = titleVal;
+          note.tag = tagVal;
+          note.body = bodyVal;
           note.updated = state.lang === 'ar' ? 'تم التحديث الآن' : 'Updated just now';
-          renderNotesList();
-          showToast('تم حفظ الملاحظة بنجاح 📝', 'Note saved successfully 📝');
+        } else {
+          const newId = Date.now();
+          state.notes.unshift({
+            id: newId,
+            title: titleVal,
+            tag: tagVal,
+            updated: state.lang === 'ar' ? 'الآن' : 'Just now',
+            body: bodyVal
+          });
+          state.activeNoteId = newId;
         }
+        renderNotesList();
+        showToast('تم حفظ الملاحظة بنجاح 📝', 'Note saved successfully 📝');
       });
 
       document.getElementById('btn-delete-note').addEventListener('click', () => {
